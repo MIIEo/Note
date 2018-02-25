@@ -321,7 +321,7 @@ git和其他版本控制系统如SVN的一个不同之处就是有一个**暂存
 工作区有一个隐藏目录`.git`,这个不算工作区,而是git的版本库
 git的版本库里存了很多东西,其中最重要的就是称为stage(或者叫index)的暂存区,还有git为我们自动创建的第一个分支`master`,以及指向`master`的一个指针叫`HEAD`.
 ![Alt Text](./image/learngit-1.jpeg)
-分之(branch)和`HEAD`的概念我们以后再讲
+分支(branch)和`HEAD`的概念我们以后再讲
 前面讲了我们把文件网git版本库里添加的时候,是分两步执行的:
 * 第一步使用`git add`把文件添加进去,实际上就是把文件修改添加到暂存区;
 * 第二步是用`git commit`提交修改,实际上就是吧暂存区的所有内容提交到当前分支.
@@ -569,7 +569,58 @@ nothing to commit, working directory clean
 #####小结
 * 场景1:当你改乱了工作区某个文件的内容,想直接丢弃工作区的修改时,用命令`git checkout -- file`.
 * 场景2:当你不但改乱了工作区某个文件的内容,还添加到了暂存区时,想丢弃修改,分两步,第一步用命令`git reset HEAD file`,就回到了场景1,第二步按场景1操作.
-* 已经提交了不合适的修改到版本库,想要撤销本次提交,参考版本回退一节,不过前提是没有推送到远程库.
+* 场景3:已经提交了不合适的修改到版本库,想要撤销本次提交,参考版本回退一节,不过前提是没有推送到远程库.
+
+####删除文件
+在git中,删除文件也是一个修改操作,我们实战一下,先添加一个新文件test.txt到git并且提交:
+```bash
+$ git add test.txt 
+$ git commit -m "add test.txt"
+[master 2d82027] add test.txt
+ 1 file changed, 2 insertions(+)
+ create mode 100644 test.txt
+```
+一般情况下,你通常直接在文件管理器中把没用的文件删了,或者用`rm`命令删了:
+```bash
+$ ls
+LICENSE  readme.txt  test.txt
+$ rm test.txt 
+$ ls
+LICENSE  readme.txt
+```
+这个时候,git知道你删除了文件,因此,工作区和版本库就不一致了,`git status`命令会立刻告诉你哪些文件被删除了:
+```bash
+$ git status 
+On branch master
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	deleted:    test.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+现在你有两个选择:
+* 一是确实要从版本库中删除该文件,那就用命令`git rm`删掉,并且`git commit`:
+```bash
+$ git rm test.txt 
+rm 'test.txt'
+$ git commit -m "remove test.txt"
+[master bdf1e95] remove test.txt
+ 1 file changed, 2 deletions(-)
+ delete mode 100644 test.txt
+```
+现在,文件就从版本库中被删除了.
+* 另一种情况是删错了,因为版本库里还有呢,所以可以很轻松地把误删的文件恢复到最新版本:
+```bash
+$ git checkout -- test.txt
+```
+`git checkout`其实是用版本库里的版本替换工作区的版本,无论工作区是修改还是删除,都可以"一键还原".
+
+#####小结
+命令`git rm`用于删除一个文件.
+如果一个文件已经被提交到版本库,那么你永远不用担心误删,但是要小心,你只能恢复文件到最新版本,你会丢失**最近一次提交后你修改的内容**.
+
 
 
 
