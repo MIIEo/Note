@@ -621,6 +621,160 @@ $ git checkout -- test.txt
 命令`git rm`用于删除一个文件.
 如果一个文件已经被提交到版本库,那么你永远不用担心误删,但是要小心,你只能恢复文件到最新版本,你会丢失**最近一次提交后你修改的内容**.
 
+###远程仓库
+####导言
+到目前为止,我们已经掌握了如何在git仓库里对一个文件进行时光穿梭,你再也不用担心文件备份或者丢失的问题了.
+可是有用过集中式版本控制系统SVN的童鞋会站出来说,这些功能在SVN里早就有了,没看出git有什么特别的地方.
+没错,如果只是在一个仓库里管理文件历史,git和SVN真没啥区别.为了保证你现在所学的git物超所值,将来绝对不会后悔,同时为了打击已经不行学了SVN的童鞋,本章开始介绍git的杀手级功能之一(注意是之一,也就是后面还有之二,之三......):远程仓库.
+git是分布式版本控制系统,同一个git仓库,可以分布到不同的机器上.怎么分布呢?最早,肯定只有一台机器有一个原始版本库,伺候,别的机器可以克隆这个原始版本库,而且每台机器的版本库其实都是一样的,并没有主次之分.
+现在的问题是,我们想要一台机器充当远程仓库,但是,现阶段,为了学git先搭服务器绝对是小题大做.好在这个世界上有个叫GitHub的神奇网站,该网站提供git仓库托管服务,所以,只要注册一个GitHub账号,就可以免费获得GitHub仓库.
+在继续向后阅读之前,请注册GitHub账号.由于你本地的git仓库和GitHub仓库之间的传输是通过SSH加密的,所以,需要一点设置:
+* 第一步：创建SSH Key.在用户目录下,看看有没有.ssh目录,如果有,在看看这个目录下有没有`id_rsa`和`id_rsa.pub`这两个文件,如果有了,可以直接跳到下一步.如果没有,打开终端,创建SSH Key:
+```bash
+$ ssh-keygen -t rsa -C "270280585@qq.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/andrew/.ssh/id_rsa):              
+Created directory '/home/andrew/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/andrew/.ssh/id_rsa.
+Your public key has been saved in /home/andrew/.ssh/id_rsa.pub.
+The key fingerprint is:
+a0:24:b3:ee:35:95:47:45:f2:d7:0d:27:5f:cd:05:8e 270280585@qq.com
+The key's randomart image is:
++--[ RSA 2048]----+
+|        ..o   +o*|
+|         +   + *+|
+|  o . . . . E o o|
+|   = . +   .     |
+|  . . o S        |
+| .   . .         |
+|  . o            |
+| . . .           |
+|  .              |
++-----------------+
+```
+你需要把邮件地址换成你自己的邮件地址,然后一路回车,使用默认值即可,由于这个Key不是用于军事目的,所以也无需设置密码.
+如果一切顺利的话,可以在用户主目录里找到`.ssh`目录,里面有`id_rsa`和`id_rsa.pub`两个文件,这两个就是SSH Key的秘钥对,`id_rsa`是私钥,不能泄露出去,`id_rsa.pub`是公钥,可以放心地告诉任何人.
+
+* 第二步:登录GitHub,点击头像,打开Settings选项:
+![Alt Text](./image/learngit-4.png)
+点击SSH and GPG keys选项:
+![Alt Text](./image/learngit-5.png)
+点击New SSH key按键:
+![Alt Text](./image/learngit-6.png)
+填上任意Title,在Key文本框里粘贴`id_rsa.pub`文件的内容,然后点击Add SSH key,你就应该看到已经添加的key
+![Alt Text](./image/learngit-7.png)
+
+为什么GitHub需要SSH Key呢?因为GitHub需要识别出你推送的提交确实是你推送的,而不是别人冒充的,而git支持SSH协议,所以,GitHub只要知道了你的公钥,就可以确认只有你自己才能推送.
+当然,GitHub允许你添加多个Key.假定你有若干电脑,你一会儿在公司提交,一会在家里提交,只要把每台电脑的Key都添加到GitHub,就可以在每台电脑上忘GitHub推送了.
+最后友情提示,在GitHub上免费托管的git仓库,任何人都可以看到喔(但只有你自己才能改).所以不要把敏感信息放进去.
+如果你不想让别人看到git库,有两个办法,一个是交点保护费,让GitHub把公开的仓库变成私有的,这样别人就看不见了(不可读更不可写).另一个办法是自己动手,搭一个git服务器,因为是你自己的git服务器,所以别人也是看不见的.这个方法我们后面会讲到,相当简单,公司内部开发必备.
+确保你有一个GitHub账号后,我们就即将开始远程仓库的学习.
+
+#####小结
+"有了远程仓库,妈妈再也不用担心我的硬盘了."--git点读机
+
+####添加远程库
+现在的情景是,你已经在本地创建了一个git仓库后,又想在GitHub创建一个git仓库,并且让这两个仓库进行远程同步,这样,GitHub上的仓库既可以作为备份,又可以让其他人通过该仓库来协作,真是一举多得.
+首先,登录GitHub,然后,在右上角找到"New repository"按钮,创建一个新的仓库:在Repository name填入`learngit`,其他保持默认设置,点击"Create repository"按钮,就成功地创建了一个新的git仓库:
+![Alt Text](./image/learngit-8.png)
+![Alt Text](./image/learngit-9.png)
+目前,在GitHub上的这个`learngit`仓库还是空的,GitHub告诉我们,可以从这个仓库克隆出新的仓库,也可以把一个已有的本地仓库与之关联,然后,把本地仓库的内容推送到GitHub仓库.
+现在,我们根据GitHub的提示,在本地的`learngit`仓库下运行命令:
+```bash
+$ git remote add origin git@github.com:MIIEo/learngit.git
+```
+请千万注意,把上面的`MIIEo`换成你自己的GitHub账户名,否则,你在本地关联的就是我的远程库,关联没有问题,但是你以后推送是推不上去的,因为你的SSH Key公钥不在我的账户列表中.
+添加后,远程库的名字就是`origin`,这是git的默认叫法,也可以改成别的,但是`origin`这个名字一看就知道是远程库.
+下一步,就可以把本地库的所有内容推送到远程库上:
+```bash
+$ git push -u origin master
+Counting objects: 23, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (19/19), done.
+Writing objects: 100% (23/23), 1.91 KiB | 0 bytes/s, done.
+Total 23 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas: 100% (6/6), done.
+To git@github:MIIEo/learngit.git
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from origin.
+```
+把本地库的内容推送到远程,用`git push`命令,实际上是把当前分支`master`推送到远程.
+由于远程库是空的,我们第一次推送`master`分支时,加上了`-u`参数,git不但会把本地的`master`分支内容推送到远程新的`master`分支,还会把本地的`master`分支和远程的`master`分支关联起来,在以后的推送或者拉取时就可以简化命令.
+推送成功后,可以立刻在GitHub页面中看到远程库的内容已经和本地一模一样:
+![Alt Text](./image/learngit-10.png)
+从现在起,只要在本地做了提交,就可以通过命令:
+```bash
+$ git push origin master
+```
+把本地的`master`分支的最新修改推送至GitHub,现在,你就拥有了真正的分布式版本库!
+#####SSH警告
+当你第一次使用git的`clone`或者`push`命令连接GitHub时,会得到一个警告:
+```bash
+The authenticity of host 'github.com (xx.xx.xx.xx)' can't be established.
+RSA key fingerprint is xx.xx.xx.xx.xx.
+Are you sure you want to continue connecting (yes/no)?
+```
+这是因为git使用SSH连接,而SSH连接在第一次验证GitHub服务器的Key时,需要你确认GitHub的Key的指纹信息是否真的来自GitHub的服务器,输入`yes`回车即可.
+git会输出一个警告,告诉你已经把GitHub的Key添加到本机的一个信任列表里了:
+```bash
+Warning: Permanently added 'github.com' (RSA) to the list of known hosts.
+```
+这个警告只会出现一次,后面的操作就不会有任何警告了.
+如果你实在担心有人冒充GitHub服务器,输入`yes`前可以对照GitHub的RSA Key的指纹信息是否与SSH连接给出的一致.
+**如下是一个完成的呈现过程**
+```bash
+$ git clone git@github.com:MIIEo/gitskills.git
+Cloning into 'gitskills'...
+The authenticity of host 'github.com (52.74.223.119)' can't be established.
+RSA key fingerprint is 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'github.com,52.74.223.119' (RSA) to the list of known hosts.
+
+remote: Counting objects: 3, done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+Receiving objects: 100% (3/3), done.
+Checking connectivity... done.
+```
+#####小结
+* 要关联一个远程库,使用命令`git remote add origin git@server-name:path/repo-name.git`;
+* 关联后,使用命令`git push -u origin master`第一次推送`master`分支的所有内容;
+* 此后,每次本地提交后,只要有必要,就可以使用命令`git push origin master`推送最新修改;
+
+分布式版本系统的最大好处之一是在本地工作完全不需要考虑远程库的存在,也就是有没有联网都可以正常工作,而SVN在没有联网的时候是拒绝干活的!当有网络的时候,再把本地提交推送一下就完成了同步,真是太方便了!
+
+####从远程库克隆
+上次我们讲了现有本地库,后有远程库的时候,如何关联远程库.
+现在,假设我们从零开发,那么最好的方式是先创建远程库,然后,从远程库克隆.
+首先登录GitHub,创建一个新的仓库,名叫`gitskills`:
+![Alt Text](./image/learngit-11.png)
+我们勾选`Initlize this repository with a README`,这样GitHub会自动给我们创建一个`README.md`文件.创建完毕后,可以看到`README.md`文件:
+![Alt Text](./image/learngit-12.png)
+现在,远程库已经准备好了,下一步是用命令`git clone`克隆一个本地库:
+```bash
+$ git clone git@github.com:MIIEo/gitskills.git
+Cloning into 'gitskills'...
+remote: Counting objects: 3, done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+Receiving objects: 100% (3/3), done.
+
+$ cd gitskills/
+$ ls
+README.md
+```
+注意把git库的地址换成你自己的,然后进入`gitskils`目录看看,已经有`README.md`文件了.
+如果有多个人协作开发,那么每个人各自从远程克隆一份就可以了.
+你也许还注意到,GitHub给出的地址不止一个,还可用`https://github.com/MIIEo/gitskills.git`这样的地址.实际上,git支持多种协议,默认的`git://`使用ssh,但也可以使用`https`等其他协议.
+使用`https`除了速度慢以外,还有个最大的麻烦是每次推送都必须输入口令,但是在某些只开放http端口的公司内部就无法使用`ssh`协议而只能用`https`.
+
+#####小结
+要克隆一个仓库,首先必须知道仓库的地址,然后使用`git clone`命令克隆.
+git支持多种协议,包括`https`,但通过`ssh`支持的原生`git`协议速度最快.
+
+
+
+
 
 
 
