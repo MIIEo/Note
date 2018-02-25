@@ -312,7 +312,89 @@ c6147d5 HEAD@{10}: commit: understand how stage works
 * 穿梭前,用`git log`可以查看提交历史,以便确定要回退到哪个版本
 * 要重返未来,用`git reflog`查看命令历史,以便确定要回到未来的哪个版本
 
+####工作区和暂存区
+git和其他版本控制系统如SVN的一个不同之处就是有一个**暂存区**的概念
+#####工作区(Working Directory)
+就是在你电脑里能看到的目录,比如我的`learngit`文件夹就是一个工作区:
+![Alt Text](./image/learngit-0.png)
+#####版本库(Repository)
+工作区有一个隐藏目录`.git`,这个不算工作区,而是git的版本库
+git的版本库里存了很多东西,其中最重要的就是称为stage(或者叫index)的暂存区,还有git为我们自动创建的第一个分支`master`,以及指向`master`的一个指针叫`HEAD`.
+![Alt Text](./image/learngit-1.jpeg)
+分之(branch)和`HEAD`的概念我们以后再讲
+前面讲了我们把文件网git版本库里添加的时候,是分两步执行的:
+* 第一步使用`git add`把文件添加进去,实际上就是把文件修改添加到暂存区;
+* 第二步是用`git commit`提交修改,实际上就是吧暂存区的所有内容提交到当前分支.
 
+因为我们创建git版本库时,git自动为我们创建了唯一一个`master`分支,所以现在,`git commit`就是往`master`分支上提交更改.
+你可以简单理解为,需要提交的文件修改统统放到暂存区,然后,一次性提交暂存区的所有修改
+俗话说,实践出真知.现在,我们再练习一遍,先对`readme.txt`做个修改,比如加上一行内容
+```txt
+Git is a distributed version control system.
+Git is free software distributed under the GPL.
+Git has a mutable index called stage.
+```
+
+然后在工作区新增一个`LICENCE`文本文件(内容随便写).
+
+```bash
+$ cat LICENSE
+This is a testing file,meaning nothing.
+```
+
+先用`git status`查看一下状态:
+```bash
+$ git status 
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   readme.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	LICENSE
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+git非常清楚地告诉我们,readme.txt被修改了,而LICENSE还从来没有被添加过,所以他的状态是`Untracked`.
+现在,使用两次命令`git add`,把`readme.txt`和`LICENSE`都添加后,用`git status`再查看一下:
+
+```bash
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	new file:   LICENSE
+	modified:   readme.txt
+
+```
+现在,暂存区的状态就变成这样了
+![Alt Text](./image/learngit-2.jpeg)
+所以,`git add`命令实际上是把要提交的所有修改放到暂存区(Stage),然后,执行`git commit`就可以一次性把暂存区的所有修改提交到分支.
+```bash
+$ git commit -m "understand how stage works"
+[master 7108fec] understand how stage works
+ 2 files changed, 2 insertions(+)
+ create mode 100644 LICENSE
+```
+
+一旦提交后,如果你又没有对工作区做任何修改,那么工作区就是"干净的":
+```bash
+$ git status 
+On branch master
+nothing to commit, working directory clean
+```
+
+现在版本库变成了这样,暂存区就没有任何内容了
+![Alt Text](./image/learngit-3.jpeg)
+
+#####小结
+暂存区是git非常重要的概念,弄明白了暂存区,就弄明白了git的很多操作到底干了什么
 
 
 
