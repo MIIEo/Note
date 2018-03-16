@@ -69,6 +69,7 @@ bool is_prime(int n){
 February 23, 2018 9:50 AM
 ##sort(first,last,cmp)
 排序范围是`[first,last)`,注意**前开后闭区间**
+编写cmp的时候注意升降序
 
 * * *
 February 24, 2018 8:54 AM
@@ -93,8 +94,8 @@ March 1, 2018 10:48 PM
 
 ##[急急急]PAT1052题目的对应代码有BUG,与键盘缓冲区有关,无法排解
 
-
-
+##自动机转C++代码
+题目:PAT1052
 
 
 
