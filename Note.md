@@ -97,6 +97,10 @@ March 1, 2018 10:48 PM
 ##自动机转C++代码
 题目:PAT1052
 
+##swap(left,right)函数
+头文件:iostream
+功能:交换left和right内容
+命名空间:std
 
 
 
