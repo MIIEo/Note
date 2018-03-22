@@ -102,6 +102,34 @@ March 1, 2018 10:48 PM
 功能:交换left和right内容
 命名空间:std
 
+##g++ 编译错误
+```bash
+error: ‘>>’ should be ‘> >’ within a nested template argument list
+ priority_queue<double, vector<double>, greater<double>> q;
+                                                      ^
+```
+解释:编译器无法确定的歧义出现,">>"为输入运算符
+编译器:gcc4.8.4
+
+##Ubuntu14.04浏览器firefox安装flash插件
+* 下载相应的.tar.gz包,解压
+* 在解压目录下存在一个usr目录,和libflashplayer.so库
+* 在终端里跳转到解压目录,执行如下命令
+```bash
+sudo cp libflashplayer.so /usr/lib/firefox-addons/plugins
+sudo cp -r usr/* /usr
+```
+* 然后重启firefox,`Bingo!!!`
+
+##PAT乙级1074题目出错
+
+
+
+
+
+
+
+
 
 
 
