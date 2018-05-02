@@ -124,6 +124,14 @@ sudo cp -r usr/* /usr
 ##PAT乙级1074题目出错
 
 
+##mpich2安装
+* tar -xzf mpich2-1.4.tar.gz
+* cd mpich2-1.4
+* ./configure
+* make; sudo make install
+* mpiexec --version
+
+
 
 
 
